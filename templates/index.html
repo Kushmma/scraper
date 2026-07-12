@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+{% block title %}NepCompare — Nepal's #1 Price Comparison Platform{% endblock %}
+
+{% block content %}
+<!-- ── Hero Section ───────────────────────────────────────────────── -->
+<section class="hero-section" id="hero">
+    <div class="hero-bg-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>
+    <div class="container position-relative">
+        <div class="row align-items-center min-vh-75">
+            <div class="col-lg-8 mx-auto text-center">
+                <h1 class="hero-title animate-fade-up">
+                    Compare Prices Across<br>
+                    <span class="text-gradient">Nepal's Top Stores</span>
+                </h1>
+                <p class="hero-subtitle animate-fade-up delay-1">
+                    Compare prices from Nepal's fastest e-commerce platforms. Find the best deals on electronics, gadgets & more from Daraz, Brother Mart, and PriceOye - all in one place.
+                </p>
+
+                <!-- Hero Search -->
+                <form class="hero-search-form animate-fade-up delay-2" action="/search" method="GET" id="hero-search-form">
+                    <div class="hero-search-wrapper">
+                        <i class="bi bi-search hero-search-icon"></i>
+                        <input type="text" name="q" class="hero-search-input" id="hero-search-input"
+                               placeholder="Search for iPhone, laptop, headphones..." autocomplete="off">
+                        <button type="submit" class="hero-search-btn" id="hero-search-btn">
+                            <i class="bi bi-arrow-right"></i> Search
+                        </button>
+                        <div class="search-suggestions-dropdown" id="hero-suggestions"></div>
+                    </div>
+                </form>
+
+                <!-- Quick searches -->
+                <div class="quick-searches animate-fade-up delay-3">
+                    <span class="text-muted small me-2">Popular:</span>
+                    <a href="/search?q=iphone" class="quick-tag">iPhone</a>
+                    <a href="/search?q=laptop" class="quick-tag">Laptop</a>
+                    <a href="/search?q=earbuds" class="quick-tag">Earbuds</a>
+                    <a href="/search?q=smartwatch" class="quick-tag">Smartwatch</a>
+                    <a href="/search?q=samsung" class="quick-tag">Samsung</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── Stats Counter ─────────────────────────────────────────────── -->
+<section class="stats-section" id="stats-section">
+    <div class="container">
+        <div class="row g-4 justify-content-center">
+            <div class="col-6 col-md-3">
+                <div class="stat-card glass-card text-center">
+                    <div class="stat-number text-accent" id="stat-products">0</div>
+                    <div class="stat-label">Products Tracked</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card glass-card text-center">
+                    <div class="stat-number text-accent" id="stat-stores">3</div>
+                    <div class="stat-label">Stores Compared</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card glass-card text-center">
+                    <div class="stat-number text-accent" id="stat-categories">0</div>
+                    <div class="stat-label">Categories</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card glass-card text-center">
+                    <div class="stat-number text-accent" id="stat-discount">0%</div>
+                    <div class="stat-label">Avg. Discount</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── Categories ─────────────────────────────────────────────────── -->
+<section class="categories-section py-5" id="categories">
+    <div class="container">
+        <h2 class="section-title text-center mb-4">
+            <i class="bi bi-grid-3x3-gap text-accent"></i> Browse Categories
+        </h2>
+        <div class="row g-3 justify-content-center" id="categories-grid">
+            <!-- Filled by JS -->
+        </div>
+    </div>
+</section>
+
+<!-- ── Featured Products ──────────────────────────────────────────── -->
+<section class="featured-section py-5" id="featured">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="section-title mb-0">
+                <i class="bi bi-fire text-accent"></i> Trending Deals
+            </h2>
+            <a href="/search?q=&sort_by=discount" class="btn btn-outline-accent btn-sm">View All <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="row g-4" id="featured-products">
+            <!-- Skeleton loaders -->
+            <div class="col-6 col-md-4 col-lg-3"><div class="skeleton-card"></div></div>
+            <div class="col-6 col-md-4 col-lg-3"><div class="skeleton-card"></div></div>
+            <div class="col-6 col-md-4 col-lg-3"><div class="skeleton-card"></div></div>
+            <div class="col-6 col-md-4 col-lg-3"><div class="skeleton-card"></div></div>
+        </div>
+    </div>
+</section>
+
+<!-- ── Recently Updated ──────────────────────────────────────────── -->
+<section class="recent-section py-5" id="recent">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="section-title mb-0">
+                <i class="bi bi-clock-history text-accent"></i> Recently Updated
+            </h2>
+            <a href="/search?q=&sort_by=updated" class="btn btn-outline-accent btn-sm">View All <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="row g-4" id="recent-products">
+            <div class="col-6 col-md-4 col-lg-3"><div class="skeleton-card"></div></div>
+            <div class="col-6 col-md-4 col-lg-3"><div class="skeleton-card"></div></div>
+            <div class="col-6 col-md-4 col-lg-3"><div class="skeleton-card"></div></div>
+            <div class="col-6 col-md-4 col-lg-3"><div class="skeleton-card"></div></div>
+        </div>
+    </div>
+</section>
+
+<!-- ── Stores ─────────────────────────────────────────────────────── -->
+<section class="stores-section py-5" id="stores-section">
+    <div class="container text-center">
+        <h2 class="section-title mb-4">
+            <i class="bi bi-shop text-accent"></i> We Compare From
+        </h2>
+        <p class="text-muted mb-5">Verified and reliable price comparison platforms</p>
+        <div class="row g-4 justify-content-center">
+            <div class="col-6 col-md-4">
+                <div class="store-badge glass-card p-4 h-100">
+                    <i class="bi bi-bag-check fs-1 text-accent mb-3 d-block"></i>
+                    <div class="fw-700 fs-5">Daraz</div>
+                    <p class="text-muted small mt-2 mb-0">Nepal's largest online marketplace</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-4">
+                <div class="store-badge glass-card p-4 h-100">
+                    <i class="bi bi-shop2 fs-1 text-accent mb-3 d-block"></i>
+                    <div class="fw-700 fs-5">Brother Mart</div>
+                    <p class="text-muted small mt-2 mb-0">Electronics & gadgets specialist</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-4">
+                <div class="store-badge glass-card p-4 h-100">
+                    <i class="bi bi-globe fs-1 text-accent mb-3 d-block"></i>
+                    <div class="fw-700 fs-5">PriceOye</div>
+                    <p class="text-muted small mt-2 mb-0">Pakistan's tech price platform</p>
+                </div>
+            </div>
+        </div>
+        <p class="text-muted small mt-5 mb-0">💡 Real-time price updates • Instant comparison • Best deals guaranteed</p>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Load stats
+    fetch('/api/stats').then(r => r.json()).then(data => {
+        animateCounter('stat-products', data.total_products || 0);
+        animateCounter('stat-stores', data.total_stores || 5);
+        animateCounter('stat-categories', data.total_categories || 0);
+        document.getElementById('stat-discount').textContent = (data.avg_discount || 0) + '%';
+    }).catch(() => {});
+
+    // Load categories
+    fetch('/api/categories').then(r => r.json()).then(cats => {
+        const grid = document.getElementById('categories-grid');
+        const icons = {
+            'Mobile Phones': 'bi-phone', 'Laptops': 'bi-laptop', 'Tablets': 'bi-tablet',
+            'Headphones & Earbuds': 'bi-headphones', 'Smartwatches': 'bi-smartwatch',
+            'Speakers': 'bi-speaker', 'Cameras': 'bi-camera', 'Power Banks': 'bi-battery-charging',
+            'Television': 'bi-tv', 'Electronics': 'bi-cpu', 'General': 'bi-box-seam',
+            'Accessories': 'bi-usb-plug', 'Gaming': 'bi-controller',
+        };
+        if (cats.length === 0) {
+            grid.innerHTML = '<p class="text-muted text-center">No categories yet. Run a scrape from the Admin panel.</p>';
+            return;
+        }
+        grid.innerHTML = cats.slice(0, 8).map(c => `
+            <div class="col-6 col-md-3 col-lg-2">
+                <a href="/search?q=&category=${encodeURIComponent(c.name)}" class="category-card glass-card text-center text-decoration-none">
+                    <i class="bi ${icons[c.name] || 'bi-box'} fs-2 text-accent"></i>
+                    <div class="fw-600 mt-2">${c.name}</div>
+                    <small class="text-muted">${c.count} items</small>
+                </a>
+            </div>
+        `).join('');
+    }).catch(() => {});
+
+    // Load featured (highest discount)
+    fetch('/api/products?sort_by=discount&per_page=8').then(r => r.json()).then(data => {
+        document.getElementById('featured-products').innerHTML =
+            data.items.length ? data.items.map(p => productCard(p)).join('') : '<p class="text-muted col-12 text-center">No products yet. Seed the database first!</p>';
+    }).catch(() => {});
+
+    // Load recently updated
+    fetch('/api/products?sort_by=updated&per_page=8').then(r => r.json()).then(data => {
+        document.getElementById('recent-products').innerHTML =
+            data.items.length ? data.items.map(p => productCard(p)).join('') : '<p class="text-muted col-12 text-center">No products yet.</p>';
+    }).catch(() => {});
+});
+
+function animateCounter(id, target) {
+    const el = document.getElementById(id);
+    if (!el || target === 0) { el.textContent = target; return; }
+    let current = 0;
+    const step = Math.max(1, Math.floor(target / 40));
+    const interval = setInterval(() => {
+        current += step;
+        if (current >= target) { el.textContent = target; clearInterval(interval); }
+        else el.textContent = current;
+    }, 30);
+}
+</script>
+{% endblock %}

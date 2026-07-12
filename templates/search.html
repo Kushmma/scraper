@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+{% block title %}Search "{{ query }}" — NepCompare{% endblock %}
+
+{% block content %}
+<section class="search-page py-4">
+    <div class="container-fluid px-lg-5">
+        <div class="row g-4">
+            <!-- ── Filters Sidebar ──────────────────────────────── -->
+            <div class="col-lg-3 col-xl-2">
+                <div class="filter-panel glass-card p-3" id="filter-panel">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-700 mb-0"><i class="bi bi-funnel"></i> Filters</h5>
+                        <button class="btn btn-sm btn-link text-accent p-0" id="clear-filters-btn">Clear All</button>
+                    </div>
+
+                    <!-- Store Filter -->
+                    <div class="filter-group mb-3">
+                        <h6 class="filter-title fw-600"><i class="bi bi-shop"></i> Store</h6>
+                        <div id="store-filters">
+                            <label class="filter-check"><input type="checkbox" value="Daraz" class="store-filter"> Daraz</label>
+                            <label class="filter-check"><input type="checkbox" value="PriceOye" class="store-filter"> PriceOye</label>
+                            <label class="filter-check"><input type="checkbox" value="Neo Store" class="store-filter"> Neo Store</label>
+                            <label class="filter-check"><input type="checkbox" value="Brother Mart" class="store-filter"> Brother Mart</label>
+                            <label class="filter-check"><input type="checkbox" value="SmartDoko" class="store-filter"> SmartDoko</label>
+                        </div>
+                    </div>
+
+                    <!-- Price Range -->
+                    <div class="filter-group mb-3">
+                        <h6 class="filter-title fw-600"><i class="bi bi-currency-exchange"></i> Price Range</h6>
+                        <div class="d-flex gap-2">
+                            <input type="number" class="form-control form-control-sm bg-transparent" placeholder="Min" id="filter-min-price">
+                            <input type="number" class="form-control form-control-sm bg-transparent" placeholder="Max" id="filter-max-price">
+                        </div>
+                    </div>
+
+                    <!-- Rating -->
+                    <div class="filter-group mb-3">
+                        <h6 class="filter-title fw-600"><i class="bi bi-star"></i> Min Rating</h6>
+                        <select class="form-select form-select-sm bg-transparent" id="filter-rating">
+                            <option value="">Any</option>
+                            <option value="4">4+ Stars</option>
+                            <option value="3">3+ Stars</option>
+                            <option value="2">2+ Stars</option>
+                        </select>
+                    </div>
+
+                    <!-- Discount -->
+                    <div class="filter-group mb-3">
+                        <h6 class="filter-title fw-600"><i class="bi bi-percent"></i> Min Discount</h6>
+                        <select class="form-select form-select-sm bg-transparent" id="filter-discount">
+                            <option value="">Any</option>
+                            <option value="10">10%+</option>
+                            <option value="20">20%+</option>
+                            <option value="30">30%+</option>
+                            <option value="50">50%+</option>
+                        </select>
+                    </div>
+
+                    <!-- Category -->
+                    <div class="filter-group mb-3">
+                        <h6 class="filter-title fw-600"><i class="bi bi-tag"></i> Category</h6>
+                        <select class="form-select form-select-sm bg-transparent" id="filter-category">
+                            <option value="">All</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-accent btn-sm w-100" id="apply-filters-btn">
+                        <i class="bi bi-check-lg"></i> Apply Filters
+                    </button>
+                </div>
+            </div>
+
+            <!-- ── Results ──────────────────────────────────────── -->
+            <div class="col-lg-9 col-xl-10">
+                <!-- Search header -->
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                    <div>
+                        <h4 class="fw-700 mb-0" id="search-heading">
+                            {% if query %}Results for "{{ query }}"{% else %}All Products{% endif %}
+                        </h4>
+                        <small class="text-muted" id="results-count"></small>
+                    </div>
+                    <div class="d-flex gap-2 align-items-center">
+                        <select class="form-select form-select-sm bg-transparent" id="sort-select" style="width:auto">
+                            <option value="updated">Latest Updated</option>
+                            <option value="price_asc">Price: Low → High</option>
+                            <option value="price_desc">Price: High → Low</option>
+                            <option value="rating">Highest Rated</option>
+                            <option value="discount">Biggest Discount</option>
+                        </select>
+                        <button class="btn btn-sm btn-outline-secondary d-lg-none" id="toggle-filters-btn">
+                            <i class="bi bi-funnel"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Product Grid -->
+                <div class="row g-3" id="search-results">
+                    <div class="col-6 col-md-4 col-xl-3"><div class="skeleton-card"></div></div>
+                    <div class="col-6 col-md-4 col-xl-3"><div class="skeleton-card"></div></div>
+                    <div class="col-6 col-md-4 col-xl-3"><div class="skeleton-card"></div></div>
+                    <div class="col-6 col-md-4 col-xl-3"><div class="skeleton-card"></div></div>
+                </div>
+
+                <!-- Pagination -->
+                <nav class="mt-4 d-flex justify-content-center" id="pagination-nav">
+                    <ul class="pagination" id="pagination"></ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const SEARCH_QUERY = "{{ query }}";
+let currentPage = 1;
+let currentSort = 'updated';
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Load categories into filter
+    fetch('/api/categories').then(r => r.json()).then(cats => {
+        const sel = document.getElementById('filter-category');
+        cats.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.name; opt.textContent = `${c.name} (${c.count})`;
+            sel.appendChild(opt);
+        });
+    });
+
+    // Check URL params for filters
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('category')) document.getElementById('filter-category').value = urlParams.get('category');
+    if (urlParams.get('sort_by')) { currentSort = urlParams.get('sort_by'); document.getElementById('sort-select').value = currentSort; }
+
+    loadResults();
+
+    document.getElementById('sort-select').addEventListener('change', e => { currentSort = e.target.value; currentPage = 1; loadResults(); });
+    document.getElementById('apply-filters-btn').addEventListener('click', () => { currentPage = 1; loadResults(); });
+    document.getElementById('clear-filters-btn').addEventListener('click', clearFilters);
+    document.getElementById('toggle-filters-btn')?.addEventListener('click', () => {
+        document.getElementById('filter-panel').classList.toggle('show-mobile');
+    });
+});
+
+function getFilterParams() {
+    const params = new URLSearchParams();
+    if (SEARCH_QUERY) params.set('q', SEARCH_QUERY);
+    params.set('page', currentPage);
+    params.set('per_page', 20);
+    params.set('sort_by', currentSort);
+
+    const stores = [...document.querySelectorAll('.store-filter:checked')].map(c => c.value);
+    if (stores.length === 1) params.set('store', stores[0]);
+
+    const cat = document.getElementById('filter-category').value;
+    if (cat) params.set('category', cat);
+
+    const minP = document.getElementById('filter-min-price').value;
+    if (minP) params.set('min_price', minP);
+
+    const maxP = document.getElementById('filter-max-price').value;
+    if (maxP) params.set('max_price', maxP);
+
+    const rating = document.getElementById('filter-rating').value;
+    if (rating) params.set('min_rating', rating);
+
+    const discount = document.getElementById('filter-discount').value;
+    if (discount) params.set('min_discount', discount);
+
+    return params;
+}
+
+function loadResults() {
+    const params = getFilterParams();
+    const endpoint = SEARCH_QUERY ? '/api/search' : '/api/products';
+    const grid = document.getElementById('search-results');
+
+    grid.innerHTML = Array(8).fill('<div class="col-6 col-md-4 col-xl-3"><div class="skeleton-card"></div></div>').join('');
+
+    fetch(`${endpoint}?${params}`).then(r => r.json()).then(data => {
+        document.getElementById('results-count').textContent = `${data.total} products found`;
+        if (data.items.length === 0) {
+            grid.innerHTML = `<div class="col-12 text-center py-5">
+                <i class="bi bi-search fs-1 text-muted"></i>
+                <h5 class="mt-3 fw-600">No products found</h5>
+                <p class="text-muted">Try a different search or clear filters</p>
+            </div>`;
+            document.getElementById('pagination').innerHTML = '';
+            return;
+        }
+        grid.innerHTML = data.items.map(p => productCard(p)).join('');
+        renderPagination(data.page, data.pages);
+    }).catch(() => {
+        grid.innerHTML = '<div class="col-12 text-center text-muted py-5">Error loading products</div>';
+    });
+}
+
+function renderPagination(current, total) {
+    if (total <= 1) { document.getElementById('pagination').innerHTML = ''; return; }
+    let html = '';
+    if (current > 1) html += `<li class="page-item"><a class="page-link" href="#" onclick="goPage(${current-1});return false;">&laquo;</a></li>`;
+    const start = Math.max(1, current - 2), end = Math.min(total, current + 2);
+    for (let i = start; i <= end; i++) {
+        html += `<li class="page-item ${i===current?'active':''}"><a class="page-link" href="#" onclick="goPage(${i});return false;">${i}</a></li>`;
+    }
+    if (current < total) html += `<li class="page-item"><a class="page-link" href="#" onclick="goPage(${current+1});return false;">&raquo;</a></li>`;
+    document.getElementById('pagination').innerHTML = html;
+}
+
+function goPage(p) { currentPage = p; loadResults(); window.scrollTo({top:0,behavior:'smooth'}); }
+
+function clearFilters() {
+    document.querySelectorAll('.store-filter').forEach(c => c.checked = false);
+    document.getElementById('filter-min-price').value = '';
+    document.getElementById('filter-max-price').value = '';
+    document.getElementById('filter-rating').value = '';
+    document.getElementById('filter-discount').value = '';
+    document.getElementById('filter-category').value = '';
+    currentPage = 1;
+    loadResults();
+}
+</script>
+{% endblock %}

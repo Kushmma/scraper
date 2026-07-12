@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="NepCompare — Compare prices across Nepal's top e-commerce sites. Find the best deals on electronics, gadgets and more.">
+    <title>{% block title %}NepCompare — Nepal's Price Comparison Platform{% endblock %}</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
+
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <!-- ── Navbar ─────────────────────────────────────────────────── -->
+    <nav class="navbar navbar-expand-lg fixed-top glass-nav" id="main-navbar">
+        <div class="container">
+            <a class="navbar-brand fw-800" href="/" id="brand-logo">
+                <i class="bi bi-graph-down-arrow text-accent"></i>
+                <span class="brand-text">Nep<span class="text-accent">Compare</span></span>
+            </a>
+
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navContent">
+                <i class="bi bi-list text-light fs-4"></i>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navContent">
+                <!-- Search Bar (in nav) -->
+                <form class="nav-search-form mx-auto" action="/search" method="GET" id="nav-search-form">
+                    <div class="nav-search-wrapper">
+                        <i class="bi bi-search nav-search-icon"></i>
+                        <input type="text" name="q" class="nav-search-input" placeholder="Search products across Nepal..."
+                               autocomplete="off" id="nav-search-input">
+                        <div class="search-suggestions-dropdown" id="nav-suggestions"></div>
+                    </div>
+                </form>
+
+                <ul class="navbar-nav ms-auto align-items-center gap-2">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/compare?q=" id="nav-compare"><i class="bi bi-arrow-left-right"></i> Compare</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin" id="nav-admin"><i class="bi bi-gear"></i> Admin</a>
+                    </li>
+                    <li class="nav-item">
+                        <button class="btn btn-icon theme-toggle" id="theme-toggle" title="Toggle dark/light mode">
+                            <i class="bi bi-moon-stars-fill"></i>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ── Toast Container ────────────────────────────────────────── -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toast-container" style="z-index:9999;"></div>
+
+    <!-- ── Main Content ───────────────────────────────────────────── -->
+    <main class="main-content">
+        {% if error %}
+        <div class="container py-5 text-center">
+            <h1 class="display-4 fw-700">{{ error }}</h1>
+            <a href="/" class="btn btn-accent mt-3">Go Home</a>
+        </div>
+        {% else %}
+        {% block content %}{% endblock %}
+        {% endif %}
+    </main>
+
+    <!-- ── Footer ─────────────────────────────────────────────────── -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <h5 class="fw-700"><i class="bi bi-graph-down-arrow text-accent"></i> NepCompare</h5>
+                    <p class="text-muted small">Compare prices across Nepal's top e-commerce stores. Find the best deals on electronics, gadgets, and more.</p>
+                </div>
+                <div class="col-lg-2">
+                    <h6 class="fw-600 mb-3">Stores</h6>
+                    <ul class="list-unstyled small text-muted">
+                        <li>Daraz</li>
+                        <li>PriceOye</li>
+                        <li>Neo Store</li>
+                        <li>Brother Mart</li>
+                        <li>SmartDoko</li>
+                    </ul>
+                </div>
+                <div class="col-lg-3">
+                    <h6 class="fw-600 mb-3">Quick Links</h6>
+                    <ul class="list-unstyled small">
+                        <li><a href="/" class="text-muted">Home</a></li>
+                        <li><a href="/search?q=laptop" class="text-muted">Search</a></li>
+                        <li><a href="/compare?q=iphone" class="text-muted">Compare</a></li>
+                        <li><a href="/admin" class="text-muted">Admin</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3">
+                    <h6 class="fw-600 mb-3">About</h6>
+                    <p class="text-muted small">NepCompare helps Nepali shoppers save money by comparing prices across multiple e-commerce platforms.</p>
+                </div>
+            </div>
+            <hr class="border-secondary my-4">
+            <p class="text-center text-muted small mb-0">&copy; 2026 NepCompare. Built for Nepali shoppers.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Main JS -->
+    <script src="/static/js/main.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

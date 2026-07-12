@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard — NepCompare{% endblock %}
+
+{% block content %}
+<section class="admin-page py-4">
+    <div class="container">
+        <!-- Login Form (if not logged in) -->
+        {% if not session.get('admin') %}
+        <div class="row justify-content-center py-5">
+            <div class="col-md-5">
+                <div class="glass-card p-4">
+                    <h4 class="fw-700 text-center mb-4"><i class="bi bi-lock text-accent"></i> Admin Login</h4>
+                    <form action="/admin/login" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label small">Username</label>
+                            <input type="text" name="username" class="form-control bg-transparent text-light" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small">Password</label>
+                            <input type="password" name="password" class="form-control bg-transparent text-light" required>
+                        </div>
+                        <button type="submit" class="btn btn-accent w-100">Login</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <!-- Dashboard Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-700"><i class="bi bi-speedometer2 text-accent"></i> Admin Dashboard</h2>
+            <a href="/admin/logout" class="btn btn-sm btn-outline-danger"><i class="bi bi-box-arrow-right"></i> Logout</a>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="glass-card p-4 text-center border-2 border-accent">
+                    <h6 class="text-uppercase text-muted small fw-700 mb-2">Total Products</h6>
+                    <h2 class="fw-900 text-accent mb-0" id="admin-total-products" style="font-size: 2.5rem;">-</h2>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="glass-card p-4 text-center border-2 border-accent">
+                    <h6 class="text-uppercase text-muted small fw-700 mb-2">Stores Integrated</h6>
+                    <h2 class="fw-900 text-accent mb-0" id="admin-total-stores" style="font-size: 2.5rem;">-</h2>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="glass-card p-4 text-center border-2 border-accent">
+                    <h6 class="text-uppercase text-muted small fw-700 mb-2">Categories</h6>
+                    <h2 class="fw-900 text-accent mb-0" id="admin-total-categories" style="font-size: 2.5rem;">-</h2>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="glass-card p-4 text-center border-2 border-accent">
+                    <h6 class="text-uppercase text-muted small fw-700 mb-2">Avg Discount</h6>
+                    <h2 class="fw-900 text-accent mb-0" id="admin-avg-discount" style="font-size: 2.5rem;">-</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Scraper Control -->
+            <div class="col-lg-4">
+                <div class="glass-card p-4 h-100">
+                    <h5 class="fw-700 mb-3"><i class="bi bi-play-circle text-accent"></i> Scraper Control</h5>
+                    <form id="scraper-form">
+                        <div class="mb-3">
+                            <label class="form-label small">Select Store</label>
+                            <select class="form-select bg-transparent text-light" id="scrape-store">
+                                <option value="">All Stores</option>
+                                <option value="daraz">Daraz</option>
+                                <option value="brothermart">Brother Mart</option>
+                                <option value="priceoye">PriceOye</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small">Search Term (Scraping query)</label>
+                            <input type="text" id="scrape-query" class="form-control bg-transparent text-light" value="laptop" required>
+                        </div>
+                        <button type="submit" class="btn btn-accent w-100" id="btn-trigger-scrape">
+                            <i class="bi bi-play-fill"></i> Trigger Scrape
+                        </button>
+                    </form>
+
+                    <div class="mt-4 pt-3 border-top border-secondary">
+                        <h6 class="fw-600 mb-2">Export Data</h6>
+                        <a href="/api/export/csv" class="btn btn-sm btn-outline-accent w-100">
+                            <i class="bi bi-download"></i> Export Products (CSV)
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scraping Logs -->
+            <div class="col-lg-8">
+                <div class="glass-card p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-700 mb-0"><i class="bi bi-terminal text-accent"></i> Scraping Logs</h5>
+                        <button class="btn btn-sm btn-outline-secondary" id="btn-refresh-logs">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="table-responsive" style="max-height: 350px;">
+                        <table class="table table-hover align-middle small mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Store</th>
+                                    <th>Query</th>
+                                    <th>Status</th>
+                                    <th>Found</th>
+                                    <th>Duration</th>
+                                    <th>Time</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logs-tbody">
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">No logs recorded yet.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Management -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="glass-card p-4">
+                    <h5 class="fw-700 mb-3"><i class="bi bi-database text-accent"></i> Product Management</h5>
+                    <div class="d-flex gap-2 mb-3" style="max-width: 400px;">
+                        <input type="text" id="admin-search-input" class="form-control form-control-sm bg-transparent text-light" placeholder="Search database products...">
+                        <button class="btn btn-accent btn-sm" id="admin-search-btn">Search</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle small">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Store</th>
+                                    <th>Price</th>
+                                    <th>Discount</th>
+                                    <th>Last Updated</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="products-tbody">
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">Search above to list products.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+{% if session.get('admin') %}
+<script src="/static/js/admin.js"></script>
+{% endif %}
+{% endblock %}

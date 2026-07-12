@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}Product Details — NepCompare{% endblock %}
+
+{% block content %}
+<section class="product-page py-4">
+    <div class="container">
+        <div class="row g-4" id="product-detail">
+            <div class="col-12 text-center py-5">
+                <div class="spinner-border text-accent" role="status"><span class="visually-hidden">Loading...</span></div>
+            </div>
+        </div>
+
+        <!-- Price History Chart -->
+        <div class="row mt-4" id="price-history-section" style="display:none;">
+            <div class="col-12">
+                <div class="glass-card p-4">
+                    <h4 class="fw-700 mb-3"><i class="bi bi-graph-up text-accent"></i> Price History</h4>
+                    <div class="row g-3 mb-3" id="price-stats"></div>
+                    <div style="position:relative;height:300px;">
+                        <canvas id="priceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Compare Table -->
+        <div class="row mt-4" id="compare-section" style="display:none;">
+            <div class="col-12">
+                <div class="glass-card p-4">
+                    <h4 class="fw-700 mb-3"><i class="bi bi-arrow-left-right text-accent"></i> Compare Across Stores</h4>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle" id="compare-table">
+                            <thead><tr><th>Store</th><th>Price</th><th>Rating</th><th>Availability</th><th></th></tr></thead>
+                            <tbody id="compare-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Similar Products -->
+        <div class="mt-5" id="similar-section" style="display:none;">
+            <h4 class="section-title mb-3"><i class="bi bi-grid text-accent"></i> Similar Products</h4>
+            <div class="row g-3" id="similar-products"></div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/charts.js"></script>
+<script>
+const PRODUCT_ID = {{ product_id }};
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Load product detail
+    fetch(`/api/products/${PRODUCT_ID}`).then(r => {
+        if (!r.ok) throw new Error('Not found');
+        return r.json();
+    }).then(product => {
+        renderProductDetail(product);
+        loadPriceHistory(PRODUCT_ID);
+        loadSimilarProducts(product.name);
+    }).catch(() => {
+        document.getElementById('product-detail').innerHTML = `
+            <div class="col-12 text-center py-5">
+                <i class="bi bi-exclamation-circle fs-1 text-muted"></i>
+                <h4 class="mt-3">Product not found</h4>
+                <a href="/" class="btn btn-accent mt-2">Go Home</a>
+            </div>`;
+    });
+});
+
+function renderProductDetail(p) {
+    const discountBadge = p.discount > 0 ? `<span class="badge bg-danger ms-2">-${p.discount}%</span>` : '';
+    const origPrice = p.original_price ? `<del class="text-muted ms-2">Rs. ${p.original_price.toLocaleString()}</del>` : '';
+    const stars = '★'.repeat(Math.round(p.rating || 0)) + '☆'.repeat(5 - Math.round(p.rating || 0));
+
+    document.getElementById('product-detail').innerHTML = `
+        <div class="col-md-5">
+            <div class="glass-card p-3 text-center">
+                <img src="${p.image_url || '/static/images/placeholder.svg'}" alt="${p.name}"
+                     class="img-fluid rounded" style="max-height:400px;object-fit:contain;"
+                     onerror="this.src='/static/images/placeholder.svg'">
+            </div>
+        </div>
+        <div class="col-md-7">
+            <div class="glass-card p-4">
+                <span class="badge bg-primary-subtle text-primary mb-2">${p.store}</span>
+                <span class="badge bg-secondary-subtle text-secondary mb-2">${p.category || 'Electronics'}</span>
+                <h2 class="fw-700 mb-3">${p.name}</h2>
+                <div class="mb-3">
+                    <span class="fs-3 fw-800 text-accent">Rs. ${p.price?.toLocaleString() || 'N/A'}</span>
+                    ${origPrice} ${discountBadge}
+                </div>
+                <div class="mb-3 text-warning">${stars} <span class="text-muted ms-1">(${p.reviews || 0} reviews)</span></div>
+                <div class="mb-3">
+                    <span class="badge ${p.availability === 'In Stock' ? 'bg-success' : 'bg-secondary'}">${p.availability || 'Unknown'}</span>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="${p.product_url}" target="_blank" rel="noopener" class="btn btn-accent">
+                        <i class="bi bi-box-arrow-up-right"></i> View on ${p.store}
+                    </a>
+                    <a href="/compare?q=${encodeURIComponent(p.name.split(' ').slice(0,3).join(' '))}" class="btn btn-outline-accent">
+                        <i class="bi bi-arrow-left-right"></i> Compare Prices
+                    </a>
+                </div>
+                <div class="mt-3 text-muted small">
+                    <i class="bi bi-clock"></i> Last updated: ${new Date(p.last_updated).toLocaleDateString()}
+                </div>
+            </div>
+        </div>`;
+}
+
+function loadPriceHistory(id) {
+    fetch(`/api/history/${id}`).then(r => r.json()).then(data => {
+        if (data.history && data.history.length > 0) {
+            document.getElementById('price-history-section').style.display = '';
+            document.getElementById('price-stats').innerHTML = `
+                <div class="col-3"><div class="text-center"><div class="fw-700 text-success">Rs. ${data.stats.lowest?.toLocaleString()}</div><small class="text-muted">Lowest</small></div></div>
+                <div class="col-3"><div class="text-center"><div class="fw-700 text-danger">Rs. ${data.stats.highest?.toLocaleString()}</div><small class="text-muted">Highest</small></div></div>
+                <div class="col-3"><div class="text-center"><div class="fw-700">Rs. ${data.stats.average?.toLocaleString()}</div><small class="text-muted">Average</small></div></div>
+                <div class="col-3"><div class="text-center"><div class="fw-700 text-accent">Rs. ${data.stats.current?.toLocaleString()}</div><small class="text-muted">Current</small></div></div>`;
+            renderPriceChart('priceChart', data.history, data.stats);
+        }
+    }).catch(() => {});
+}
+
+function loadSimilarProducts(name) {
+    const words = name.split(' ').slice(0, 2).join(' ');
+    fetch(`/api/compare?q=${encodeURIComponent(words)}`).then(r => r.json()).then(data => {
+        // Show compare table
+        if (data.all && data.all.length > 1) {
+            document.getElementById('compare-section').style.display = '';
+            const cheapestId = data.cheapest?.id;
+            document.getElementById('compare-tbody').innerHTML = data.all.slice(0, 10).map(p => `
+                <tr class="${p.id === cheapestId ? 'table-success' : ''}">
+                    <td><strong>${p.store}</strong>${p.id === cheapestId ? ' <span class="badge bg-success">Cheapest</span>' : ''}</td>
+                    <td class="fw-700">Rs. ${p.price?.toLocaleString()}</td>
+                    <td>${'★'.repeat(Math.round(p.rating || 0))} ${p.rating || '-'}</td>
+                    <td>${p.availability || '-'}</td>
+                    <td><a href="${p.product_url}" target="_blank" class="btn btn-sm btn-outline-accent">Visit</a></td>
+                </tr>`).join('');
+        }
+
+        // Similar products
+        const similar = data.all?.filter(p => p.id !== PRODUCT_ID).slice(0, 8);
+        if (similar && similar.length > 0) {
+            document.getElementById('similar-section').style.display = '';
+            document.getElementById('similar-products').innerHTML = similar.map(p => productCard(p)).join('');
+        }
+    }).catch(() => {});
+}
+</script>
+{% endblock %}
